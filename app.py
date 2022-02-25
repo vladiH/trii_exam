@@ -1,10 +1,6 @@
-from ast import Lambda
 from fastapi import FastAPI, HTTPException
 import requests
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-from typing import Optional, Text
-from datetime import datetime
 import zipfile
 import json
 import uvicorn
