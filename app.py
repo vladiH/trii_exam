@@ -32,8 +32,8 @@ def read_root():
     return {"welcome": "Welcome to Trii app"}
 
 @app.get('/money_necessary')
-def character():
-    with ThreadPoolExecutor(max_workers=2) as pool:
+def money():
+    with ThreadPoolExecutor(max_workers=1) as pool:
         response_list = list(pool.map(get_url,compose_url()))
     return {"money_necessary":sum(map(lambda x: x.json()[0]['price'], response_list))}
     
