@@ -5,47 +5,35 @@ import zipfile
 import json
 import uvicorn
 from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI()
+stocks = [
+"AAPL",
+"GOOGL",
+"AMZN",
+"TSLA",
+"FB",
+"TWTR",
+"UBER",
+"LYFT",
+"SNAP",
+"SHOP"]
+url = "https://financialmodelingprep.com/api/v3/quote-short/"
+
+def get_url(url):
+    return requests.get(url, timeout=30)
+
+def compose_url():
+    return [ url+stock+"?apikey=c13a5d2ecf7cc6b8c50c06d7e1dfce22" for stock in stocks]
 
 @app.get('/')
 def read_root():
     return {"welcome": "Welcome to Trii app"}
 
-@app.get('/character')
+@app.get('/money_necessary')
 def character():
-    url = 'https://rickandmortyapi.com/api/character/'
-    response = requests.get(url)
-    if response.status_code == 200:
-        res = response.json()['results']
-        return res
-    else:
-        return {"Data": "No data"}
-
-@app.get('/character/{name}/{gender}/{species}')
-def character(name:str, gender:str, species:str):
-    url = 'https://rickandmortyapi.com/api/character/?name={0}&gender={1}&species={2}'.format(name, gender, species)
-    response = requests.get(url)
-    if response.status_code == 200:
-        res = response.json()['results']
-        return res
-    else:
-        return {"Data": "No data"}
-
-@app.get("/character/zip")
-def zip():
-    url = 'https://rickandmortyapi.com/api/character/'
-    response = requests.get(url)
-    if response.status_code == 200:
-        return zip_file("character.json", response.json())
-    else:
-        return {"Data": "No data"}
-
-def zip_file(file_name, data):
-    zipped_file = BytesIO()
-    with zipfile.ZipFile(zipped_file, 'a', zipfile.ZIP_DEFLATED) as zipped:
-        zipped.writestr(file_name, json.dumps(data))
-    zipped_file.seek(0)
-    response = StreamingResponse(zipped_file, media_type="application/x-zip-compressed")
-    response.headers["Content-Disposition"] = "attachment; filename=test.zip"
-    return response
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        response_list = list(pool.map(get_url,compose_url()))
+    return {"money_necessary":sum(map(lambda x: x.json()[0]['price'], response_list))}
+    
