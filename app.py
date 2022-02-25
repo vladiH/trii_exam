@@ -12,39 +12,31 @@ from io import BytesIO
 
 app = FastAPI()
 
-posts = []
-
-# Post model
-class Post(BaseModel):
-    id: Optional[str]
-    title: str
-    author: str
-    content: Text
-    created_at: datetime =  datetime.now()
-    published_at: Optional[datetime] 
-    published: Optional[bool] = False
-
 @app.get('/')
 def read_root():
     return {"welcome": "Welcome to Trii app"}
 
-@app.get('/character/{filter}')
-def character(filter:str):
+@app.get('/character')
+def character():
     url = 'https://rickandmortyapi.com/api/character/'
     response = requests.get(url)
     if response.status_code == 200:
         res = response.json()['results']
-        if filter=='all':
-            return res
-        if filter=='male':
-            return json.dump(list(filter(lambda x:x['gender']=='male'),res))
-        else:
-            return res
-
+        return res
     else:
         return {"Data": "No data"}
 
-@app.get("/zip")
+@app.get('/character/{name}/{gender}/{species}')
+def character(name:str, gender:str, species:str):
+    url = 'https://rickandmortyapi.com/api/character/?name={0}&gender={1}&species={2}'.format(name, gender, species)
+    response = requests.get(url)
+    if response.status_code == 200:
+        res = response.json()['results']
+        return res
+    else:
+        return {"Data": "No data"}
+
+@app.get("/character/zip")
 def zip():
     url = 'https://rickandmortyapi.com/api/character/'
     response = requests.get(url)
